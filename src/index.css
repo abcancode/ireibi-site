@@ -1,0 +1,59 @@
+/* ===== Trajan Pro 3 ===== */
+@font-face {
+  font-family: "Trajan Pro 3";
+  src: url("./assets/fonts/TrajanPro-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Trajan Pro 3";
+  src: url("./assets/fonts/TrajanPro-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: "Trajan Pro 3", serif;
+  letter-spacing: 0.02em;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ✅ Responsive luxury headline */
+h1 {
+  font-family: "Trajan Pro 3", serif;
+  font-weight: 700; /* you only have 700 available */
+  font-size: clamp(20px, 2.8vw, 55px);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+/* ✅ Keep luxury tracking for h2/h3 only (don’t override h1) */
+h2,
+h3 {
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+}
+
+p,
+button,
+input,
+textarea,
+label {
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
