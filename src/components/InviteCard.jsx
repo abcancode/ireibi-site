@@ -4,6 +4,7 @@ import waxSeal from "../assets/waxseal.png";
 import headerBg from "../assets/cover-bg.png";
 import africaBg from "../assets/africa-bg.png";
 import RSVPModal from "./RSVPModal";
+import { motion } from "framer-motion";
 
 const VIDEO_URL = import.meta.env.VITE_INVITE_VIDEO_URL;
 
@@ -47,12 +48,65 @@ export default function InviteCard() {
           <div className="h-16 w-full bg-[#F3F0E8]" />
 
           <div className="absolute inset-x-0 top-[190px] flex items-center justify-center pointer-events-none">
-            <img
-              src={waxSeal}
-              alt="Wax seal"
-              className="w-[70px] drop-shadow-xl select-none"
-              draggable="false"
-            />
+            <div className="relative">
+              <motion.img
+                src={waxSeal}
+                alt="Wax seal"
+                className="w-[56px] sm:w-[70px] drop-shadow-xl select-none"
+                draggable="false"
+                initial={{ rotate: 0 }}
+                animate={{
+                  rotate: [
+                    0, // rest
+                    2, // subtle wobble
+                    -2,
+                    1,
+                    0,
+                    360, // 👑 FULL ROYAL ROLL
+                    360, // hold position after roll
+                  ],
+                  y: [0, -2, 0], // subtle floating luxury
+                }}
+                transition={{
+                  rotate: {
+                    duration: 12,
+                    ease: [0.16, 1, 0.3, 1], // cinematic luxury easing
+                    repeat: Infinity,
+                    times: [0, 0.15, 0.25, 0.35, 0.45, 0.7, 1],
+                  },
+                  y: {
+                    duration: 4,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                  },
+                }}
+                whileHover={{
+                  scale: 1.05,
+                  rotate: 0,
+                  transition: { duration: 0.3 },
+                }}
+              />
+
+              {/* Royal light glint */}
+              <motion.span
+                className="absolute inset-0 rounded-full pointer-events-none"
+                style={{
+                  background:
+                    "linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.4) 35%, transparent 65%)",
+                  mixBlendMode: "soft-light",
+                }}
+                animate={{
+                  x: ["-120%", "-120%", "120%"],
+                  opacity: [0, 0, 1, 0],
+                }}
+                transition={{
+                  duration: 12,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  times: [0, 0.55, 0.65, 1],
+                }}
+              />
+            </div>
           </div>
 
           <div className="absolute inset-x-0 top-10 flex items-center justify-center">
@@ -90,7 +144,7 @@ export default function InviteCard() {
             <img
               src={africaBg}
               alt=""
-              className="pointer-events-none absolute left-1/2 top-[60%] w-[820px] -translate-x-1/2 -translate-y-1/2 opacity-[0.45] select-none"
+              className="pointer-events-none absolute left-1/2 top-[60%] w-[820px] -translate-x-1/2 -translate-y-1/2 opacity-[1.55] select-none"
               draggable="false"
             />
 
