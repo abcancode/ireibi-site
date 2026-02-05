@@ -128,11 +128,11 @@ export default function InviteCard() {
 
               <div className="mx-auto mt-10 max-w-[560px] space-y-4 text-center text-[13px] leading-6 text-[#6B5A4E]">
                 <p>
-                  Kindly save the date for a joint milestone celebration rooted
-                  in culture, style, and adventure, set against the beauty of
+                  Save the date for a joint milestone celebration rooted in
+                  culture, style, and adventure, set against the beauty of
                   Kenya.
                 </p>
-                <p>Formal invitation and curated travel details to follow.</p>
+                <p>More information and curated travel details to follow.</p>
               </div>
 
               {/* RSVP */}
@@ -147,7 +147,7 @@ export default function InviteCard() {
                     onClick={() => openModal("yes")}
                     className="w-full max-w-[260px] rounded-full border border-[#D8B48A] bg-white/60 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
                   >
-                    Yes, I will be there.
+                    Yes, I will be there!
                   </button>
 
                   <button
@@ -155,7 +155,7 @@ export default function InviteCard() {
                     onClick={() => openModal("no")}
                     className="w-full max-w-[260px] rounded-full border border-[#D8B48A] bg-white/60 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
                   >
-                    No, I won&apos;t be there.
+                    No, I can&apos;t make it.
                   </button>
                 </div>
 
