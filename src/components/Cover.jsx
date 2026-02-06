@@ -51,7 +51,12 @@ export default function Cover() {
   }, [scene]);
 
   return (
-    <section className="relative w-full h-[100svh] overflow-hidden">
+    <section
+      className={[
+        "relative w-full h-[100svh]",
+        scene === "details" ? "overflow-y-auto" : "overflow-hidden",
+      ].join(" ")}
+    >
       {/* ===== CINEMATIC BACKGROUND STACK ===== */}
       <motion.div
         className="absolute inset-0"
@@ -266,10 +271,16 @@ export default function Cover() {
                 >
                   <InviteCard />
 
-                  <div className="mt-4 flex justify-center">
+                  <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center pointer-events-none">
                     <button
+                      type="button"
                       onClick={goIntro}
-                      className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/15 transition"
+                      className="pointer-events-auto
+               rounded-full bg-white/10 px-4 py-2
+               text-xs font-semibold text-white
+               ring-1 ring-white/20 backdrop-blur
+               hover:bg-white/15 transition
+               shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
                     >
                       Back
                     </button>
