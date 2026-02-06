@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function RSVPModal({
   open,
-  initialStatus = "yes", // "yes" | "no"
+  initialStatus = "yes", // "yes" | "no" | "other"
   onClose,
   onSubmit,
 }) {
@@ -17,6 +17,10 @@ export default function RSVPModal({
     email: "",
     phone: "",
     message: "",
+    // ✅ Other fields
+    arrivalDate: "",
+    departureDate: "",
+    daysAttending: "",
   });
 
   useEffect(() => setMounted(true), []);
@@ -45,6 +49,18 @@ export default function RSVPModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
+  // If user switches away from "other", clear other-only fields (keeps data clean)
+  useEffect(() => {
+    if (status !== "other") {
+      setForm((p) => ({
+        ...p,
+        arrivalDate: "",
+        departureDate: "",
+        daysAttending: "",
+      }));
+    }
+  }, [status]);
+
   const chips = useMemo(() => {
     if (status === "no") {
       return [
@@ -53,6 +69,15 @@ export default function RSVPModal({
         "Thanks for thinking of me!",
       ];
     }
+
+    if (status === "other") {
+      return [
+        "I’ll attend for part of the trip.",
+        "I’ll join from (date) to (date).",
+        "I can’t stay the full duration, but I’ll be there!",
+      ];
+    }
+
     return [
       "Thanks for thinking of me!",
       "Excited to be there!",
@@ -81,7 +106,19 @@ export default function RSVPModal({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (Object.keys(errors).length) return;
-    onSubmit?.({ status, ...form });
+
+    const payload = {
+      status, // "yes" | "no" | "other"
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      message: form.message,
+      arrivalDate: status === "other" ? form.arrivalDate : "",
+      departureDate: status === "other" ? form.departureDate : "",
+      daysAttending: status === "other" ? form.daysAttending : "",
+    };
+
+    onSubmit?.(payload);
   };
 
   if (!mounted) return null;
@@ -110,11 +147,9 @@ export default function RSVPModal({
             <motion.div
               className={[
                 "relative w-full",
-                // ✅ responsive max width (never overflows)
                 "max-w-[96vw] sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1100px]",
                 "overflow-hidden rounded-2xl sm:rounded-3xl bg-white",
                 "shadow-[0_30px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/10",
-                // ✅ responsive max height
                 "max-h-[92svh]",
               ].join(" ")}
               initial={{ opacity: 0, y: 16, scale: 0.985 }}
@@ -145,7 +180,7 @@ export default function RSVPModal({
                   <div className="px-4 py-4 sm:px-8 sm:py-6">
                     {/* Toggle */}
                     <div className="rounded-2xl sm:rounded-full bg-neutral-100 p-1">
-                      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-1 sm:grid-cols-3">
                         <button
                           type="button"
                           onClick={() => setStatus("yes")}
@@ -156,7 +191,20 @@ export default function RSVPModal({
                               : "text-neutral-700 hover:bg-white/60",
                           ].join(" ")}
                         >
-                          I will attend this event
+                          I will attend
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setStatus("other")}
+                          className={[
+                            "rounded-xl sm:rounded-full px-4 py-3 text-[13px] sm:text-sm font-semibold transition",
+                            status === "other"
+                              ? "bg-[#7A5A43] text-white shadow"
+                              : "text-neutral-700 hover:bg-white/60",
+                          ].join(" ")}
+                        >
+                          Other (Partial)
                         </button>
 
                         <button
@@ -169,7 +217,7 @@ export default function RSVPModal({
                               : "text-neutral-700 hover:bg-white/60",
                           ].join(" ")}
                         >
-                          I will not attend this event
+                          I will not attend
                         </button>
                       </div>
                     </div>
@@ -235,6 +283,55 @@ export default function RSVPModal({
                         />
                       </div>
 
+                      {/* ✅ Other-only attendance info */}
+                      {status === "other" ? (
+                        <div className="md:col-span-1">
+                          <label className="mb-2 block text-[12px] sm:text-[13px] font-semibold text-neutral-700">
+                            Partial attendance details{" "}
+                            <span className="text-neutral-400">(Optional)</span>
+                          </label>
+
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <input
+                              value={form.arrivalDate}
+                              onChange={handleChange("arrivalDate")}
+                              type="date"
+                              className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-[14px] outline-none transition focus:border-neutral-400"
+                              aria-label="Arrival date"
+                            />
+
+                            <input
+                              value={form.departureDate}
+                              onChange={handleChange("departureDate")}
+                              type="date"
+                              className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-[14px] outline-none transition focus:border-neutral-400"
+                              aria-label="Departure date"
+                            />
+                          </div>
+
+                          <select
+                            value={form.daysAttending}
+                            onChange={handleChange("daysAttending")}
+                            className="mt-2 w-full rounded-xl border border-neutral-200 px-4 py-3 text-[14px] outline-none transition focus:border-neutral-400"
+                            aria-label="Days attending"
+                          >
+                            <option value="">
+                              How many days will you attend? (optional)
+                            </option>
+                            <option value="1-2">1–2 days</option>
+                            <option value="3-4">3–4 days</option>
+                            <option value="5-6">5–6 days</option>
+                            <option value="7+">7+ days</option>
+                            <option value="unsure">Not sure yet</option>
+                          </select>
+
+                          <p className="mt-2 text-[11px] text-neutral-500">
+                            If you’re unsure, leave dates empty and explain in
+                            your message.
+                          </p>
+                        </div>
+                      ) : null}
+
                       {/* Message */}
                       <div className="md:col-span-2">
                         <div className="mb-2 text-[14px] sm:text-[16px] font-semibold text-neutral-900">
@@ -247,7 +344,11 @@ export default function RSVPModal({
                         <textarea
                           value={form.message}
                           onChange={handleChange("message")}
-                          placeholder="Enter your message to the host here"
+                          placeholder={
+                            status === "other"
+                              ? "Tell the host what part of the trip you’ll attend (e.g., Aug 18–20 only)."
+                              : "Enter your message to the host here"
+                          }
                           rows={4}
                           className="w-full resize-none rounded-2xl border border-neutral-200 px-4 py-4 text-[14px] outline-none transition focus:border-neutral-400"
                         />

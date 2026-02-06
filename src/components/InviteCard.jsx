@@ -10,7 +10,7 @@ const VIDEO_URL = import.meta.env.VITE_INVITE_VIDEO_URL;
 
 export default function InviteCard() {
   const [rsvpOpen, setRsvpOpen] = useState(false);
-  const [initialStatus, setInitialStatus] = useState("yes"); // "yes" | "no"
+  const [initialStatus, setInitialStatus] = useState("yes"); // "yes" | "no" | "other"
 
   const openModal = (status) => {
     setInitialStatus(status);
@@ -20,7 +20,17 @@ export default function InviteCard() {
   const closeModal = () => setRsvpOpen(false);
 
   const handleSubmit = (payload) => {
-    // payload = { status: "yes" | "no", name, email, phone, message }
+    // payload = {
+    //   status: "yes" | "no" | "other",
+    //   name,
+    //   email,
+    //   phone,
+    //   message,
+    //   arrivalDate,      // only when status === "other" (else "")
+    //   departureDate,    // only when status === "other" (else "")
+    //   daysAttending     // only when status === "other" (else "")
+    // }
+
     console.log("RSVP SUBMIT:", payload);
 
     // for now: just close after submit (we’ll wire backend later)
@@ -144,7 +154,7 @@ export default function InviteCard() {
             <img
               src={africaBg}
               alt=""
-              className="pointer-events-none absolute left-1/2 top-[60%] w-[820px] -translate-x-1/2 -translate-y-1/2 opacity-[1.55] select-none"
+              className="pointer-events-none absolute left-1/2 top-[60%] w-[820px] -translate-x-1/2 -translate-y-1/2 opacity-[1] select-none"
               draggable="false"
             />
 
@@ -195,19 +205,27 @@ export default function InviteCard() {
                   ARE YOU COMING?
                 </h2>
 
-                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
                   <button
                     type="button"
                     onClick={() => openModal("yes")}
-                    className="w-full max-w-[260px] rounded-full border border-[#D8B48A] bg-white/60 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
+                    className="sm:w-[260px] min-h-[52px] rounded-full border border-[#D8B48A] bg-white/60 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
                   >
                     Yes, I will be there!
                   </button>
 
                   <button
                     type="button"
+                    onClick={() => openModal("other")}
+                    className="sm:w-[260px] min-h-[52px] rounded-full border border-[#D8B48A] bg-[#F7E7D3]/70 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-[#F7E7D3]"
+                  >
+                    Other (Partial Stay)
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => openModal("no")}
-                    className="w-full max-w-[260px] rounded-full border border-[#D8B48A] bg-white/60 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
+                    className="sm:w-[260px] min-h-[52px] rounded-full border border-[#D8B48A] bg-white/60 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
                   >
                     No, I can&apos;t make it.
                   </button>
