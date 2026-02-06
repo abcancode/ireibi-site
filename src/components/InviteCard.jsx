@@ -1,12 +1,8 @@
 // src/components/InviteCard.jsx
 import React, { useState } from "react";
-import waxSeal from "../assets/waxseal.png";
 import headerBg from "../assets/cover-bg.png";
 import africaBg from "../assets/africa-bg.png";
 import RSVPModal from "./RSVPModal";
-import { motion } from "framer-motion";
-
-const VIDEO_URL = import.meta.env.VITE_INVITE_VIDEO_URL;
 
 export default function InviteCard() {
   const [rsvpOpen, setRsvpOpen] = useState(false);
@@ -20,26 +16,13 @@ export default function InviteCard() {
   const closeModal = () => setRsvpOpen(false);
 
   const handleSubmit = (payload) => {
-    // payload = {
-    //   status: "yes" | "no" | "other",
-    //   name,
-    //   email,
-    //   phone,
-    //   message,
-    //   arrivalDate,      // only when status === "other" (else "")
-    //   departureDate,    // only when status === "other" (else "")
-    //   daysAttending     // only when status === "other" (else "")
-    // }
-
     console.log("RSVP SUBMIT:", payload);
-
-    // for now: just close after submit (we’ll wire backend later)
     setRsvpOpen(false);
   };
 
   return (
     <>
-      <div className="relative w-full overflow-hidden rounded-3xl bg-[#F3F0E8] ring-1 ring-black/5">
+      <div className="relative w-full overflow-hidden rounded-3xl bg-[#F3F0E8] ring-1 ring-black/10 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
@@ -51,123 +34,50 @@ export default function InviteCard() {
         {/* TOP HERO STRIP */}
         <div className="relative">
           <div
-            className="h-56 w-full bg-cover bg-center bg-no-repeat"
+            className="w-full bg-cover bg-center bg-no-repeat h-40 xs:h-44 sm:h-52 md:h-56 lg:h-60"
             style={{ backgroundImage: `url(${headerBg})` }}
           />
+          <div className="w-full bg-[#F3F0E8] h-10 sm:h-14" />
 
-          <div className="h-16 w-full bg-[#F3F0E8]" />
-
-          <div className="absolute inset-x-0 top-[190px] flex items-center justify-center pointer-events-none">
-            <div className="relative">
-              <motion.img
-                src={waxSeal}
-                alt="Wax seal"
-                className="w-[56px] sm:w-[70px] drop-shadow-xl select-none"
-                draggable="false"
-                initial={{ rotate: 0 }}
-                animate={{
-                  rotate: [
-                    0, // rest
-                    2, // subtle wobble
-                    -2,
-                    1,
-                    0,
-                    360, // 👑 FULL ROYAL ROLL
-                    360, // hold position after roll
-                  ],
-                  y: [0, -2, 0], // subtle floating luxury
-                }}
-                transition={{
-                  rotate: {
-                    duration: 12,
-                    ease: [0.16, 1, 0.3, 1], // cinematic luxury easing
-                    repeat: Infinity,
-                    times: [0, 0.15, 0.25, 0.35, 0.45, 0.7, 1],
-                  },
-                  y: {
-                    duration: 4,
-                    ease: "easeInOut",
-                    repeat: Infinity,
-                  },
-                }}
-                whileHover={{
-                  scale: 1.05,
-                  rotate: 0,
-                  transition: { duration: 0.3 },
-                }}
-              />
-
-              {/* Royal light glint */}
-              <motion.span
-                className="absolute inset-0 rounded-full pointer-events-none"
-                style={{
-                  background:
-                    "linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.4) 35%, transparent 65%)",
-                  mixBlendMode: "soft-light",
-                }}
-                animate={{
-                  x: ["-120%", "-120%", "120%"],
-                  opacity: [0, 0, 1, 0],
-                }}
-                transition={{
-                  duration: 12,
-                  ease: "easeInOut",
-                  repeat: Infinity,
-                  times: [0, 0.55, 0.65, 1],
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="absolute inset-x-0 top-10 flex items-center justify-center">
-            <div className="h-24 w-44 rounded-[26px] bg-black/0" />
+          {/* reserved logo space */}
+          <div className="absolute inset-x-0 top-6 sm:top-10 flex items-center justify-center">
+            <div className="h-16 w-36 sm:h-24 sm:w-44 rounded-[26px] bg-black/0" />
           </div>
         </div>
 
         {/* BODY */}
-        <div className="px-6 pb-36 pt-2 sm:px-10">
-          {/* VIDEO */}
-          <div className="mx-auto w-full max-w-[720px] rounded-2xl bg-white/60 p-3 shadow-sm ring-1 ring-black/10">
-            <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
-              {VIDEO_URL ? (
-                <video
-                  className="h-full w-full object-cover"
-                  controls
-                  playsInline
-                  preload="metadata"
-                  controlsList="nodownload"
-                  crossOrigin="anonymous"
-                >
-                  <source src={VIDEO_URL} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-white/70">
-                  Set VITE_INVITE_VIDEO_URL in your .env file
-                </div>
-              )}
-            </div>
-          </div>
-
+        <div className="px-4 xs:px-5 sm:px-8 md:px-10 pt-4 pb-10 sm:pb-12">
           {/* TITLE + DETAILS */}
-          <div className="relative mx-auto mt-10 max-w-[720px] text-center">
+          <div className="relative mx-auto max-w-[760px] text-center">
             <img
               src={africaBg}
               alt=""
-              className="pointer-events-none absolute left-1/2 top-[60%] w-[820px] -translate-x-1/2 -translate-y-1/2 opacity-[1] select-none"
+              className="pointer-events-none absolute left-1/2 top-[56%]
+                         w-[520px] xs:w-[640px] sm:w-[760px] md:w-[860px] lg:w-[920px]
+                         -translate-x-1/2 -translate-y-1/2
+                         opacity-[0.55] sm:opacity-[0.75]
+                         select-none"
               draggable="false"
             />
 
             <div className="relative z-10">
-              <h1 className="text-[#5A3E2C]">
-                IREDE AND IBI&apos;S 40TH
-                <br />
-                BIRTHDAY EXPERIENCE:
-                <br />
-                DESTINATION KENYA
-              </h1>
+              <div className="text-center">
+                <h1
+                  className="font-semibold text-[#5A3E2C] tracking-[0.04em]"
+                  style={{ fontSize: "clamp(22px, 3vw, 30px)" }}
+                >
+                  Irede and Ibi’s 40th Birthday Experience
+                </h1>
 
-              <div className="mt-6 flex flex-col items-center justify-center gap-3 text-[#A06A3B]">
+                <p
+                  className="mt-2 text-[#A06A3B] tracking-[0.08em]"
+                  style={{ fontSize: "clamp(13px, 1.6vw, 16px)" }}
+                >
+                  Destination: Kenya
+                </p>
+              </div>
+
+              <div className="mt-5 sm:mt-6 flex flex-col items-center justify-center gap-3 text-[#A06A3B]">
                 <div className="h-1 w-1 rounded-full bg-[#A06A3B]" />
 
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/50 ring-1 ring-black/10">
@@ -185,12 +95,12 @@ export default function InviteCard() {
                   </svg>
                 </span>
 
-                <p className="text-sm font-semibold">
+                <p className="text-[13px] sm:text-sm font-semibold">
                   August 16th - August 22nd, 2026
                 </p>
               </div>
 
-              <div className="mx-auto mt-10 max-w-[560px] space-y-4 text-center text-[13px] leading-6 text-[#6B5A4E]">
+              <div className="mx-auto mt-7 sm:mt-10 max-w-[600px] space-y-3 sm:space-y-4 text-center text-[12.5px] sm:text-[13px] leading-6 text-[#6B5A4E]">
                 <p>
                   Save the date for a joint milestone celebration rooted in
                   culture, style, and adventure, set against the beauty of
@@ -199,17 +109,13 @@ export default function InviteCard() {
                 <p>More information and curated travel details to follow.</p>
               </div>
 
-              {/* RSVP */}
-              <div className="mt-10">
-                <h2 className="text-sm font-semibold tracking-[0.25em] text-[#5A3E2C]">
-                  ARE YOU COMING?
-                </h2>
-
-                <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+              {/* RSVP buttons ONLY (no "ARE YOU COMING?" heading here) */}
+              <div className="mt-8 sm:mt-10">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => openModal("yes")}
-                    className="sm:w-[260px] min-h-[52px] rounded-full border border-[#D8B48A] bg-white/60 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
+                    className="h-[52px] w-full rounded-full border border-[#D8B48A] bg-white/60 px-5 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
                   >
                     Yes, I will be there!
                   </button>
@@ -217,7 +123,7 @@ export default function InviteCard() {
                   <button
                     type="button"
                     onClick={() => openModal("other")}
-                    className="sm:w-[260px] min-h-[52px] rounded-full border border-[#D8B48A] bg-[#F7E7D3]/70 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-[#F7E7D3]"
+                    className="h-[52px] w-full rounded-full border border-[#D8B48A] bg-[#F7E7D3]/70 px-5 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-[#F7E7D3]"
                   >
                     Other (Partial Stay)
                   </button>
@@ -225,13 +131,13 @@ export default function InviteCard() {
                   <button
                     type="button"
                     onClick={() => openModal("no")}
-                    className="sm:w-[260px] min-h-[52px] rounded-full border border-[#D8B48A] bg-white/60 px-5 py-3 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
+                    className="h-[52px] w-full rounded-full border border-[#D8B48A] bg-white/60 px-5 text-sm font-semibold text-[#5A3E2C] shadow-sm transition hover:bg-white"
                   >
                     No, I can&apos;t make it.
                   </button>
                 </div>
 
-                <div className="mt-8 flex items-center justify-center gap-2 text-[#A06A3B]">
+                <div className="mt-7 sm:mt-8 flex items-center justify-center gap-2 text-[#A06A3B]">
                   <span className="h-1 w-1 rounded-full bg-[#A06A3B]" />
                   <span className="h-1 w-1 rounded-full bg-[#A06A3B]/60" />
                   <span className="h-1 w-1 rounded-full bg-[#A06A3B]/30" />

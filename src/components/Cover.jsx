@@ -1,230 +1,284 @@
 // src/components/Cover.jsx
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import InviteCard from "./InviteCard";
 
-import envelopeClosed from "../assets/envelope-closed.png";
-import envelopeFlap from "../assets/envelope-flap.png";
-import envelopeOpen from "../assets/envelope-open.png";
+const BG_VIDEO_URL = import.meta.env.VITE_INVITE_VIDEO_URL;
 
 export default function Cover() {
-  // stages: closed -> opening -> opened
-  const [stage, setStage] = useState("closed");
-  const opening = stage === "opening";
-  const opened = stage === "opened";
+  const [scene, setScene] = useState("intro"); // "intro" | "details"
+  const videoRef = useRef(null);
 
-  // keep the open envelope visible behind the card after opening
-  const [showOpenEnvelope, setShowOpenEnvelope] = useState(false);
-
-  const [isMobile, setIsMobile] = useState(false);
   const ease = useMemo(() => [0.16, 1, 0.3, 1], []);
+  const easeSoft = useMemo(() => [0.22, 1, 0.36, 1], []);
 
+  // Gentle "cinematic camera" movement on the whole background stack
+  const bgMotion = useMemo(
+    () => ({
+      scale: [1.06, 1.085, 1.06],
+      x: [0, -10, 0],
+      y: [0, 6, 0],
+    }),
+    [],
+  );
+
+  const enableSound = () => {
+    // Browser policy: autoplay must be muted; unmute on user interaction
+    const v = videoRef.current;
+    if (!v) return;
+    try {
+      v.muted = false;
+      v.volume = 1;
+      v.play?.().catch(() => {});
+    } catch {
+      // ignore
+    }
+  };
+
+  const goDetails = () => {
+    enableSound();
+    setScene("details");
+  };
+
+  const goIntro = () => setScene("intro");
+
+  // Optional: allow user click anywhere on intro to enable sound (still keeps CTA)
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 640px)");
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener?.("change", update);
-    return () => mq.removeEventListener?.("change", update);
-  }, []);
-
-  const openNow = () => {
-    if (stage !== "closed") return;
-    setStage("opening");
-    setShowOpenEnvelope(true);
-
-    // flap opens + little settle, then reveal InviteCard
-    window.setTimeout(() => setStage("opened"), 900);
-  };
-
-  const closeNow = () => {
-    setStage("closed");
-    setShowOpenEnvelope(false);
-  };
-
-  // Card slide distance (starts "inside" the envelope)
-  const cardFromY = isMobile ? 130 : 165;
+    if (scene !== "intro") return;
+    const handler = () => enableSound();
+    window.addEventListener("pointerdown", handler, { once: true });
+    return () => window.removeEventListener("pointerdown", handler);
+  }, [scene]);
 
   return (
-    <section
-      className={[
-        "relative w-full min-h-screen overflow-x-hidden",
-        opened ? "overflow-y-auto" : "overflow-y-hidden",
-      ].join(" ")}
-    >
-      {/* 👑 Cinematic royal background (driven by your index.css) */}
-      <div className="absolute inset-0 royal-parallax">
-        <div className="royal-layer royal-layer--back" />
-        <div className="royal-layer royal-layer--mid" />
-        <div className="royal-layer royal-layer--front" />
-        <div className="royal-sunGlow" />
-        <div className="royal-lightSweep" />
-        <div className="royal-grain" />
-      </div>
-
-      {/* Optional tint overlay */}
-      <div className="absolute inset-0 bg-black/10" />
-
-      {/* LAYOUT WRAPPER */}
-      <div
-        className={[
-          "relative z-10 w-full min-h-screen",
-          "flex justify-center",
-          opened ? "items-start" : "items-center",
-          "px-3 sm:px-6",
-          opened ? "py-10 sm:py-12" : "py-10",
-        ].join(" ")}
+    <section className="relative w-full h-[100svh] overflow-hidden">
+      {/* ===== CINEMATIC BACKGROUND STACK ===== */}
+      <motion.div
+        className="absolute inset-0"
+        animate={bgMotion}
+        transition={{
+          duration: 18,
+          ease: "easeInOut",
+          repeat: Infinity,
+        }}
       >
+        {BG_VIDEO_URL ? (
+          <video
+            ref={videoRef}
+            className="h-full w-full object-cover"
+            autoPlay
+            loop
+            playsInline
+            muted // required for autoplay; we unmute on interaction
+            preload="auto"
+          >
+            <source src={BG_VIDEO_URL} type="video/mp4" />
+          </video>
+        ) : (
+          <div className="h-full w-full bg-black" />
+        )}
+
+        {/* Cinematic overlays */}
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/60" />
+
+        {/* soft vignette */}
+        <div
+          className="absolute inset-0 opacity-[0.55]"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 40%, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.8) 100%)",
+          }}
+        />
+
+        {/* subtle film grain */}
+        <div
+          className="absolute inset-0 mix-blend-overlay opacity-[0.13]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 2px, transparent 4px)",
+          }}
+        />
+
+        {/* slow royal light sweep */}
         <motion.div
-          className="w-full max-w-[980px]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, ease }}
-        >
-          <div className="relative">
-            {/* ✅ INVITE CARD (slides out from envelope area) */}
-            <AnimatePresence>
-              {opened && (
+          className="absolute inset-0 opacity-[0.18]"
+          style={{
+            background:
+              "linear-gradient(115deg, transparent 0%, rgba(255,220,160,0.35) 35%, transparent 70%)",
+          }}
+          animate={{ x: ["-120%", "120%"] }}
+          transition={{ duration: 10, ease: "easeInOut", repeat: Infinity }}
+        />
+      </motion.div>
+
+      {/* ===== CONTENT ===== */}
+      <div className="relative z-10 h-[100svh] w-full px-4 sm:px-6">
+        <div className="mx-auto h-full w-full max-w-[980px]">
+          <AnimatePresence mode="wait">
+            {/* ===================== INTRO SCENE ===================== */}
+            {scene === "intro" ? (
+              <motion.div
+                key="intro"
+                className="h-full flex items-center justify-center text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease }}
+              >
                 <motion.div
-                  key="invite-card"
-                  className="relative z-20 mx-auto w-full"
-                  initial={{ opacity: 0, y: cardFromY, scale: 0.985 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 16, scale: 0.99 }}
-                  transition={{ duration: 0.85, ease }}
+                  className="relative w-full max-w-[720px]"
+                  initial={{ y: 18, scale: 0.99, opacity: 0 }}
+                  animate={{ y: 0, scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.9, ease: easeSoft }}
+                >
+                  {/* ornamental top line */}
+                  <motion.div
+                    className="mx-auto mb-5 h-[1px] w-[140px] sm:w-[180px] bg-white/30"
+                    initial={{ opacity: 0, scaleX: 0.6 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    transition={{ duration: 0.9, ease: easeSoft, delay: 0.15 }}
+                    style={{ transformOrigin: "50% 50%" }}
+                  />
+
+                  {/* SAVE THE DATE - cinematic royal shimmer */}
+                  <div className="relative inline-block">
+                    <motion.h1
+                      className="text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.55)]"
+                      initial={{ opacity: 0, y: 10, letterSpacing: "0.35em" }}
+                      animate={{ opacity: 1, y: 0, letterSpacing: "0.18em" }}
+                      transition={{
+                        duration: 1.1,
+                        ease: easeSoft,
+                        delay: 0.05,
+                      }}
+                      style={{
+                        fontSize: "clamp(28px, 4.5vw, 58px)",
+                        lineHeight: 1.02,
+                        fontWeight: 700,
+                      }}
+                    >
+                      SAVE THE DATE
+                    </motion.h1>
+
+                    {/* Shimmer sweep */}
+                    <motion.span
+                      className="pointer-events-none absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(115deg, transparent 0%, rgba(255,235,200,0.55) 35%, transparent 70%)",
+                        mixBlendMode: "soft-light",
+                        filter: "blur(1px)",
+                      }}
+                      animate={{ x: ["-130%", "130%"], opacity: [0, 1, 0] }}
+                      transition={{
+                        duration: 2.6,
+                        ease: "easeInOut",
+                        repeat: Infinity,
+                        repeatDelay: 2.8,
+                      }}
+                    />
+                  </div>
+
+                  {/* subtitle */}
+                  <motion.p
+                    className="mt-5 text-white font-bold tracking-[0.04em]
+             drop-shadow-[0_12px_35px_rgba(0,0,0,0.6)]"
+                    style={{ fontSize: "clamp(15px, 2vw, 20px)" }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.9, ease: easeSoft, delay: 0.22 }}
+                  >
+                    Irede and Ibi’s 40th Birthday Experience
+                  </motion.p>
+
+                  <motion.p
+                    className="mt-2 text-white/85 tracking-[0.09em]"
+                    style={{ fontSize: "clamp(12px, 1.4vw, 15px)" }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.9, ease: easeSoft, delay: 0.32 }}
+                  >
+                    Destination: Kenya
+                  </motion.p>
+
+                  {/* ARE YOU COMING */}
+                  <motion.div
+                    className="mt-10 text-white/85 font-semibold tracking-[0.26em]"
+                    style={{ fontSize: "clamp(11px, 1.2vw, 14px)" }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.9, ease: easeSoft, delay: 0.45 }}
+                  >
+                    ARE YOU COMING?
+                  </motion.div>
+
+                  {/* CTA */}
+                  <motion.button
+                    onClick={goDetails}
+                    className="mt-6 inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-white
+                               bg-white/10 ring-1 ring-white/20 backdrop-blur
+                               hover:bg-white/15 transition"
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.985 }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.9, ease: easeSoft, delay: 0.55 }}
+                  >
+                    Tap to get more information
+                  </motion.button>
+
+                  {/* tiny hint about sound */}
+                  <motion.div
+                    className="mt-4 text-[11px] text-white/55"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.8, ease, delay: 0.8 }}
+                  >
+                    (Sound will play after your first tap)
+                  </motion.div>
+
+                  {/* ornamental bottom line */}
+                  <motion.div
+                    className="mx-auto mt-8 h-[1px] w-[140px] sm:w-[180px] bg-white/20"
+                    initial={{ opacity: 0, scaleX: 0.6 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    transition={{ duration: 0.9, ease: easeSoft, delay: 0.2 }}
+                    style={{ transformOrigin: "50% 50%" }}
+                  />
+                </motion.div>
+              </motion.div>
+            ) : (
+              /* ===================== DETAILS SCENE ===================== */
+              <motion.div
+                key="details"
+                className="h-full flex items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease }}
+              >
+                <motion.div
+                  className="w-full"
+                  initial={{ y: 22, scale: 0.99, opacity: 0 }}
+                  animate={{ y: 0, scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.9, ease: easeSoft }}
                 >
                   <InviteCard />
+
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      onClick={goIntro}
+                      className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/15 transition"
+                    >
+                      Back
+                    </button>
+                  </div>
                 </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* ✅ ENVELOPE: closed slides in; tap -> flap lifts; open stays under card */}
-            <motion.button
-              type="button"
-              onClick={openNow}
-              className={[
-                "relative mx-auto block w-full focus:outline-none",
-                // once opened, it stays visible behind the card (no clicks)
-                opened ? "pointer-events-none" : "",
-                // behind card when opened
-                opened ? "z-10" : "z-20",
-              ].join(" ")}
-              whileHover={!opening && !opened ? { y: -3 } : undefined}
-              whileTap={!opening && !opened ? { scale: 0.985 } : undefined}
-              initial={{ opacity: 0, x: -600, rotateZ: -90, scale: 0.96 }}
-              animate={{
-                opacity: 1,
-                x: 0,
-                rotateZ: 0,
-
-                // closed floats; once opened, it drops slightly lower (like gravity)
-                y: opened ? [0, 22, 18] : [0, -6, 0],
-                scale: opening ? 1.01 : 1,
-              }}
-              transition={{
-                opacity: { duration: 1.2, ease },
-                x: { duration: 3.2, ease: [0.22, 1, 0.36, 1] },
-                rotateZ: { duration: 3.2, ease: [0.22, 1, 0.36, 1] },
-
-                y: opened
-                  ? {
-                      duration: 0.7,
-                      ease: [0.22, 1, 0.36, 1],
-                      times: [0, 0.75, 1],
-                    }
-                  : { duration: 3.5, ease: "easeInOut", repeat: Infinity },
-
-                scale: { duration: 0.6, ease },
-              }}
-              style={{ transformOrigin: "50% 50%" }}
-              aria-label={opened ? "Envelope opened" : "Open invitation"}
-            >
-              {/* container for flap 3D */}
-              <div
-                className="relative mx-auto w-full max-w-[520px] sm:max-w-[640px] select-none"
-                style={{ perspective: "1400px" }}
-              >
-                {/* ✅ CLOSED ENVELOPE (visible only before opening) */}
-                <motion.img
-                  src={envelopeClosed}
-                  alt="Envelope (closed)"
-                  draggable="false"
-                  className="absolute inset-0 w-full"
-                  initial={false}
-                  animate={{ opacity: opening || opened ? 0 : 1 }}
-                  transition={{ duration: 0.28, ease }}
-                />
-
-                {/* ✅ OPEN ENVELOPE (visible during opening and after opened) */}
-                <motion.img
-                  src={envelopeOpen}
-                  alt="Envelope (open)"
-                  draggable="false"
-                  className="block w-full"
-                  initial={false}
-                  animate={{ opacity: showOpenEnvelope ? 1 : 0 }}
-                  transition={{
-                    duration: 0.28,
-                    ease,
-                    // appear just after click
-                    delay: opening ? 0.15 : 0,
-                  }}
-                />
-
-                {/* ✅ FLAP ONLY (lid) — raised on opening */}
-                <motion.img
-                  src={envelopeFlap}
-                  alt="Envelope flap"
-                  draggable="false"
-                  className="absolute inset-0 w-full pointer-events-none"
-                  style={{
-                    transformOrigin: "50% 0%",
-                    transformStyle: "preserve-3d",
-                  }}
-                  initial={{ opacity: 0 }}
-                  animate={{
-                    // 👑 disappear BEFORE reaching full flip
-                    opacity: opening ? [1, 1, 0] : 0,
-
-                    // flap lifts upward
-                    rotateX: opening ? [0, 150, 165] : 0,
-
-                    y: opening ? [-2, -6] : 0,
-                  }}
-                  transition={{
-                    duration: 0.85,
-                    ease: [0.16, 1, 0.3, 1],
-                    times: [0, 0.75, 1], // 👑 fade out BEFORE end
-                  }}
-                />
-              </div>
-
-              {/* Tap hint only when closed */}
-              {!opening && !opened && (
-                <motion.div
-                  className="absolute inset-x-0 -bottom-6 mx-auto w-fit rounded-full bg-black/40 px-4 py-2 text-xs font-semibold text-white backdrop-blur"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.4, duration: 0.75, ease }}
-                >
-                  Tap to open
-                </motion.div>
-              )}
-            </motion.button>
-
-            {/* Optional: close button when opened */}
-            {opened && (
-              <div className="mt-4 flex justify-center">
-                <button
-                  type="button"
-                  onClick={closeNow}
-                  className="rounded-full bg-black/50 px-4 py-2 text-xs font-semibold text-white backdrop-blur hover:bg-black/60"
-                >
-                  Close
-                </button>
-              </div>
+              </motion.div>
             )}
-          </div>
-        </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </section>
   );
