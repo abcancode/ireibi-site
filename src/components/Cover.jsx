@@ -152,7 +152,7 @@ export default function Cover() {
       </div>
 
       {/* ===== CONTENT ===== */}
-      <div className="relative z-10 h-[100svh] w-full px-4 sm:px-6">
+      <div className="relative z-10 h-[100svh] w-full px-3 sm:px-4">
         <div className="mx-auto h-full w-full max-w-[980px]">
           <AnimatePresence mode="wait">
             {/* ===================== INTRO SCENE ===================== */}
@@ -174,7 +174,7 @@ export default function Cover() {
                   {/* SAVE THE DATE - slightly bigger */}
                   <div className="relative inline-block">
                     <motion.h1
-                      className="text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.55)]"
+                      className="text-white text-center drop-shadow-[0_10px_35px_rgba(0,0,0,0.55)]"
                       initial={{ opacity: 0, y: 10, letterSpacing: "0.35em" }}
                       animate={{ opacity: 1, y: 0, letterSpacing: "0.18em" }}
                       transition={{
@@ -213,13 +213,16 @@ export default function Cover() {
                   {/* subtitle */}
                   <motion.p
                     className="mt-5 text-white font-bold tracking-[0.04em]
-                               drop-shadow-[0_12px_35px_rgba(0,0,0,0.6)]"
-                    style={{ fontSize: "clamp(15px, 2vw, 20px)" }}
+             whitespace-nowrap text-center
+             drop-shadow-[0_12px_35px_rgba(0,0,0,0.6)]"
+                    style={{
+                      fontSize: "clamp(12px, 3.5vw, 20px)", // 👈 KEY CHANGE
+                    }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.9, ease: easeSoft, delay: 0.22 }}
                   >
-                    Irede and Ibi’s 40th Birthday Experience
+                    Irede and Ibi’s 40th Birthday&nbsp;Experience
                   </motion.p>
 
                   <motion.p
@@ -250,7 +253,14 @@ export default function Cover() {
 
                   {/* ✅ Helper line under CTA */}
                   <motion.div
-                    className="mt-3 text-[12px] sm:text-[13px] text-white/70"
+                    className="
+    mt-3
+    text-[10px] sm:text-[11px]
+    tracking-[0.18em]
+    text-white/45
+    font-medium
+    select-none
+  "
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease, delay: 0.7 }}
