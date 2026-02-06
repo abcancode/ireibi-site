@@ -17,10 +17,18 @@ export default function RSVPModal({
     email: "",
     phone: "",
     message: "",
+
     // ✅ Other fields
     arrivalDate: "",
     departureDate: "",
     daysAttending: "",
+
+    // ✅ Family RSVP (Yes + Other only)
+    bringingSpouse: false,
+    spouseName: "",
+    bringingKids: false,
+    kidsCount: "",
+    kidsAges: "", // optional text e.g. "4, 7, 10"
   });
 
   useEffect(() => setMounted(true), []);
@@ -49,7 +57,7 @@ export default function RSVPModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
-  // If user switches away from "other", clear other-only fields (keeps data clean)
+  // If user switches away from "other", clear other-only fields
   useEffect(() => {
     if (status !== "other") {
       setForm((p) => ({
@@ -60,6 +68,33 @@ export default function RSVPModal({
       }));
     }
   }, [status]);
+
+  // ✅ If user selects "no", clear spouse/kids fields
+  useEffect(() => {
+    if (status === "no") {
+      setForm((p) => ({
+        ...p,
+        bringingSpouse: false,
+        spouseName: "",
+        bringingKids: false,
+        kidsCount: "",
+        kidsAges: "",
+      }));
+    }
+  }, [status]);
+
+  // ✅ Keep spouse/kids fields consistent
+  useEffect(() => {
+    if (!form.bringingSpouse && form.spouseName) {
+      setForm((p) => ({ ...p, spouseName: "" }));
+    }
+  }, [form.bringingSpouse]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!form.bringingKids && (form.kidsCount || form.kidsAges)) {
+      setForm((p) => ({ ...p, kidsCount: "", kidsAges: "" }));
+    }
+  }, [form.bringingKids]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const chips = useMemo(() => {
     if (status === "no") {
@@ -96,6 +131,10 @@ export default function RSVPModal({
     setForm((p) => ({ ...p, [key]: evt.target.value }));
   };
 
+  const handleToggle = (key) => (value) => {
+    setForm((p) => ({ ...p, [key]: value }));
+  };
+
   const handleChip = (text) => {
     setForm((p) => ({
       ...p,
@@ -107,15 +146,27 @@ export default function RSVPModal({
     e.preventDefault();
     if (Object.keys(errors).length) return;
 
+    const includeFamily = status === "yes" || status === "other";
+
     const payload = {
       status, // "yes" | "no" | "other"
       name: form.name,
       email: form.email,
       phone: form.phone,
       message: form.message,
+
       arrivalDate: status === "other" ? form.arrivalDate : "",
       departureDate: status === "other" ? form.departureDate : "",
       daysAttending: status === "other" ? form.daysAttending : "",
+
+      // ✅ Family RSVP
+      bringingSpouse: includeFamily ? form.bringingSpouse : false,
+      spouseName:
+        includeFamily && form.bringingSpouse ? form.spouseName.trim() : "",
+      bringingKids: includeFamily ? form.bringingKids : false,
+      kidsCount:
+        includeFamily && form.bringingKids ? String(form.kidsCount || "") : "",
+      kidsAges: includeFamily && form.bringingKids ? form.kidsAges.trim() : "",
     };
 
     onSubmit?.(payload);
@@ -161,7 +212,7 @@ export default function RSVPModal({
               {/* Header */}
               <div className="relative border-b border-black/10 px-4 py-3 sm:px-8 sm:py-4">
                 <h3 className="text-center text-[16px] font-semibold text-neutral-900 sm:text-[18px]">
-                  Are you coming to this event?
+                  RSVP Details
                 </h3>
 
                 <button
@@ -282,6 +333,200 @@ export default function RSVPModal({
                           ].join(" ")}
                         />
                       </div>
+
+                      {/* ===================== LUXURY FAMILY EXPANSION ===================== */}
+                      {status !== "no" ? (
+                        <div className="md:col-span-1">
+                          <div className="rounded-2xl border border-neutral-200 bg-white p-3 sm:p-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-[13px] sm:text-[14px] font-semibold text-neutral-900">
+                                  + Add family
+                                </div>
+                                <div className="text-[11px] sm:text-[12px] text-neutral-500">
+                                  Spouse and kids (optional)
+                                </div>
+                              </div>
+
+                              {/* Apple-style pill toggle */}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleToggle("bringingSpouse")(
+                                    !form.bringingSpouse || !form.bringingKids,
+                                  )
+                                }
+                                className="rounded-full bg-neutral-100 px-3 py-1.5 text-[12px] font-semibold text-neutral-700 hover:bg-neutral-200 transition"
+                                title="Open family options"
+                              >
+                                Edit
+                              </button>
+                            </div>
+
+                            <AnimatePresence initial={false}>
+                              {(form.bringingSpouse || form.bringingKids) && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0, y: -6 }}
+                                  animate={{ height: "auto", opacity: 1, y: 0 }}
+                                  exit={{ height: 0, opacity: 0, y: -6 }}
+                                  transition={{
+                                    duration: 0.35,
+                                    ease: [0.22, 1, 0.36, 1],
+                                  }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="mt-3 grid grid-cols-1 gap-3">
+                                    {/* spouse */}
+                                    <div className="rounded-xl border border-neutral-200 p-3">
+                                      <div className="flex items-center justify-between">
+                                        <div className="text-[13px] font-semibold text-neutral-800">
+                                          Spouse
+                                        </div>
+                                        <div className="flex rounded-full bg-neutral-100 p-1">
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              handleToggle("bringingSpouse")(
+                                                true,
+                                              )
+                                            }
+                                            className={[
+                                              "px-3 py-1 text-[12px] font-semibold rounded-full transition",
+                                              form.bringingSpouse
+                                                ? "bg-white shadow text-neutral-900"
+                                                : "text-neutral-600 hover:bg-white/60",
+                                            ].join(" ")}
+                                          >
+                                            Yes
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              handleToggle("bringingSpouse")(
+                                                false,
+                                              )
+                                            }
+                                            className={[
+                                              "px-3 py-1 text-[12px] font-semibold rounded-full transition",
+                                              !form.bringingSpouse
+                                                ? "bg-white shadow text-neutral-900"
+                                                : "text-neutral-600 hover:bg-white/60",
+                                            ].join(" ")}
+                                          >
+                                            No
+                                          </button>
+                                        </div>
+                                      </div>
+
+                                      <AnimatePresence initial={false}>
+                                        {form.bringingSpouse && (
+                                          <motion.div
+                                            initial={{ opacity: 0, y: -6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -6 }}
+                                            transition={{
+                                              duration: 0.25,
+                                              ease: [0.22, 1, 0.36, 1],
+                                            }}
+                                          >
+                                            <input
+                                              value={form.spouseName}
+                                              onChange={handleChange(
+                                                "spouseName",
+                                              )}
+                                              placeholder="Spouse full name (optional)"
+                                              className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] outline-none transition focus:border-neutral-400"
+                                            />
+                                          </motion.div>
+                                        )}
+                                      </AnimatePresence>
+                                    </div>
+
+                                    {/* kids */}
+                                    <div className="rounded-xl border border-neutral-200 p-3">
+                                      <div className="flex items-center justify-between">
+                                        <div className="text-[13px] font-semibold text-neutral-800">
+                                          Kids
+                                        </div>
+                                        <div className="flex rounded-full bg-neutral-100 p-1">
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              handleToggle("bringingKids")(true)
+                                            }
+                                            className={[
+                                              "px-3 py-1 text-[12px] font-semibold rounded-full transition",
+                                              form.bringingKids
+                                                ? "bg-white shadow text-neutral-900"
+                                                : "text-neutral-600 hover:bg-white/60",
+                                            ].join(" ")}
+                                          >
+                                            Yes
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              handleToggle("bringingKids")(
+                                                false,
+                                              )
+                                            }
+                                            className={[
+                                              "px-3 py-1 text-[12px] font-semibold rounded-full transition",
+                                              !form.bringingKids
+                                                ? "bg-white shadow text-neutral-900"
+                                                : "text-neutral-600 hover:bg-white/60",
+                                            ].join(" ")}
+                                          >
+                                            No
+                                          </button>
+                                        </div>
+                                      </div>
+
+                                      <AnimatePresence initial={false}>
+                                        {form.bringingKids && (
+                                          <motion.div
+                                            initial={{ opacity: 0, y: -6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -6 }}
+                                            transition={{
+                                              duration: 0.25,
+                                              ease: [0.22, 1, 0.36, 1],
+                                            }}
+                                            className="mt-2 grid grid-cols-1 gap-2"
+                                          >
+                                            <input
+                                              value={form.kidsCount}
+                                              onChange={handleChange(
+                                                "kidsCount",
+                                              )}
+                                              inputMode="numeric"
+                                              placeholder="Number of kids (e.g. 2)"
+                                              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] outline-none transition focus:border-neutral-400"
+                                            />
+                                            <input
+                                              value={form.kidsAges}
+                                              onChange={handleChange(
+                                                "kidsAges",
+                                              )}
+                                              placeholder="Kids ages (optional) e.g. 4, 7"
+                                              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] outline-none transition focus:border-neutral-400"
+                                            />
+                                          </motion.div>
+                                        )}
+                                      </AnimatePresence>
+                                    </div>
+
+                                    <p className="text-[11px] text-neutral-500">
+                                      If you’re unsure, leave it blank and
+                                      explain in your message.
+                                    </p>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+                      ) : null}
 
                       {/* ✅ Other-only attendance info */}
                       {status === "other" ? (
