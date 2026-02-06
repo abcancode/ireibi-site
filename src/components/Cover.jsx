@@ -1,13 +1,48 @@
-import { useMemo, useState } from "react";
+// src/components/Cover.jsx
+import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import InviteCard from "./InviteCard";
 
 import envelopeClosed from "../assets/envelope-closed.png";
+import envelopeFlap from "../assets/envelope-flap.png";
 import envelopeOpen from "../assets/envelope-open.png";
 
 export default function Cover() {
-  const [opened, setOpened] = useState(false);
+  // stages: closed -> opening -> opened
+  const [stage, setStage] = useState("closed");
+  const opening = stage === "opening";
+  const opened = stage === "opened";
+
+  // keep the open envelope visible behind the card after opening
+  const [showOpenEnvelope, setShowOpenEnvelope] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false);
   const ease = useMemo(() => [0.16, 1, 0.3, 1], []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
+  const openNow = () => {
+    if (stage !== "closed") return;
+    setStage("opening");
+    setShowOpenEnvelope(true);
+
+    // flap opens + little settle, then reveal InviteCard
+    window.setTimeout(() => setStage("opened"), 900);
+  };
+
+  const closeNow = () => {
+    setStage("closed");
+    setShowOpenEnvelope(false);
+  };
+
+  // Card slide distance (starts "inside" the envelope)
+  const cardFromY = isMobile ? 130 : 165;
 
   return (
     <section
@@ -46,57 +81,56 @@ export default function Cover() {
           transition={{ duration: 1.2, ease }}
         >
           <div className="relative">
-            {/* ✅ INVITE CARD (pops in ABOVE the open envelope) */}
+            {/* ✅ INVITE CARD (slides out from envelope area) */}
             <AnimatePresence>
               {opened && (
                 <motion.div
                   key="invite-card"
                   className="relative z-20 mx-auto w-full"
-                  initial={{ opacity: 0, y: 26, scale: 0.99 }}
+                  initial={{ opacity: 0, y: cardFromY, scale: 0.985 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 16, scale: 0.99 }}
-                  transition={{ duration: 0.8, ease }}
+                  transition={{ duration: 0.85, ease }}
                 >
                   <InviteCard />
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* ✅ ENVELOPE (always stays under the card when opened) */}
+            {/* ✅ ENVELOPE: closed slides in; tap -> flap lifts; open stays under card */}
             <motion.button
               type="button"
-              onClick={() => setOpened(true)}
+              onClick={openNow}
               className={[
                 "relative mx-auto block w-full focus:outline-none",
+                // once opened, it stays visible behind the card (no clicks)
                 opened ? "pointer-events-none" : "",
-                // keep envelope under the card when opened
+                // behind card when opened
                 opened ? "z-10" : "z-20",
               ].join(" ")}
-              whileHover={!opened ? { y: -3 } : undefined}
-              whileTap={!opened ? { scale: 0.985 } : undefined}
-              initial={{
-                opacity: 0,
-                x: -600,
-                rotateZ: -90,
-                scale: 0.96,
-              }}
+              whileHover={!opening && !opened ? { y: -3 } : undefined}
+              whileTap={!opening && !opened ? { scale: 0.985 } : undefined}
+              initial={{ opacity: 0, x: -600, rotateZ: -90, scale: 0.96 }}
               animate={{
                 opacity: 1,
                 x: 0,
                 rotateZ: 0,
 
-                // ✅ while closed: gentle float; when opened: stop floating and settle
-                y: opened ? 0 : [0, -6, 0],
-                scale: opened ? 1 : 1,
+                // closed floats; once opened, it drops slightly lower (like gravity)
+                y: opened ? [0, 22, 18] : [0, -6, 0],
+                scale: opening ? 1.01 : 1,
               }}
               transition={{
                 opacity: { duration: 1.2, ease },
                 x: { duration: 3.2, ease: [0.22, 1, 0.36, 1] },
                 rotateZ: { duration: 3.2, ease: [0.22, 1, 0.36, 1] },
 
-                // float only when closed
                 y: opened
-                  ? { duration: 0.35, ease }
+                  ? {
+                      duration: 0.7,
+                      ease: [0.22, 1, 0.36, 1],
+                      times: [0, 0.75, 1],
+                    }
                   : { duration: 3.5, ease: "easeInOut", repeat: Infinity },
 
                 scale: { duration: 0.6, ease },
@@ -104,24 +138,68 @@ export default function Cover() {
               style={{ transformOrigin: "50% 50%" }}
               aria-label={opened ? "Envelope opened" : "Open invitation"}
             >
-              <motion.img
-                src={opened ? envelopeOpen : envelopeClosed}
-                alt={opened ? "Envelope (open)" : "Envelope (closed)"}
-                className="mx-auto w-full max-w-[520px] sm:max-w-[640px] select-none"
-                draggable="false"
-                // ✅ tiny “swap” polish when switching images
-                initial={false}
-                animate={{
-                  scale: opened ? 1 : 1,
-                  filter: opened
-                    ? "brightness(1.02) saturate(1.02)"
-                    : "brightness(1) saturate(1)",
-                }}
-                transition={{ duration: 0.25, ease }}
-              />
+              {/* container for flap 3D */}
+              <div
+                className="relative mx-auto w-full max-w-[520px] sm:max-w-[640px] select-none"
+                style={{ perspective: "1400px" }}
+              >
+                {/* ✅ CLOSED ENVELOPE (visible only before opening) */}
+                <motion.img
+                  src={envelopeClosed}
+                  alt="Envelope (closed)"
+                  draggable="false"
+                  className="absolute inset-0 w-full"
+                  initial={false}
+                  animate={{ opacity: opening || opened ? 0 : 1 }}
+                  transition={{ duration: 0.28, ease }}
+                />
+
+                {/* ✅ OPEN ENVELOPE (visible during opening and after opened) */}
+                <motion.img
+                  src={envelopeOpen}
+                  alt="Envelope (open)"
+                  draggable="false"
+                  className="block w-full"
+                  initial={false}
+                  animate={{ opacity: showOpenEnvelope ? 1 : 0 }}
+                  transition={{
+                    duration: 0.28,
+                    ease,
+                    // appear just after click
+                    delay: opening ? 0.15 : 0,
+                  }}
+                />
+
+                {/* ✅ FLAP ONLY (lid) — raised on opening */}
+                <motion.img
+                  src={envelopeFlap}
+                  alt="Envelope flap"
+                  draggable="false"
+                  className="absolute inset-0 w-full pointer-events-none"
+                  style={{
+                    transformOrigin: "50% 0%",
+                    transformStyle: "preserve-3d",
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    // 👑 disappear BEFORE reaching full flip
+                    opacity: opening ? [1, 1, 0] : 0,
+
+                    // flap lifts upward
+                    rotateX: opening ? [0, 150, 165] : 0,
+
+                    y: opening ? [-2, -6] : 0,
+                  }}
+                  transition={{
+                    duration: 0.85,
+                    ease: [0.16, 1, 0.3, 1],
+                    times: [0, 0.75, 1], // 👑 fade out BEFORE end
+                  }}
+                />
+              </div>
 
               {/* Tap hint only when closed */}
-              {!opened && (
+              {!opening && !opened && (
                 <motion.div
                   className="absolute inset-x-0 -bottom-6 mx-auto w-fit rounded-full bg-black/40 px-4 py-2 text-xs font-semibold text-white backdrop-blur"
                   initial={{ opacity: 0, y: 6 }}
@@ -138,7 +216,7 @@ export default function Cover() {
               <div className="mt-4 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => setOpened(false)}
+                  onClick={closeNow}
                   className="rounded-full bg-black/50 px-4 py-2 text-xs font-semibold text-white backdrop-blur hover:bg-black/60"
                 >
                   Close
