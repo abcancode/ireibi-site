@@ -3,10 +3,14 @@ import React, { useState } from "react";
 import headerBg from "../assets/cover-bg.png";
 import africaBg from "../assets/africa-bg.png";
 import RSVPModal from "./RSVPModal";
+import RSVPConfirmModal from "./RSVPConfirmModal";
 
 export default function InviteCard() {
   const [rsvpOpen, setRsvpOpen] = useState(false);
   const [initialStatus, setInitialStatus] = useState("yes"); // "yes" | "no" | "other"
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmStatus, setConfirmStatus] = useState("yes");
 
   const openModal = (status) => {
     setInitialStatus(status);
@@ -15,9 +19,35 @@ export default function InviteCard() {
 
   const closeModal = () => setRsvpOpen(false);
 
-  const handleSubmit = (payload) => {
-    console.log("RSVP SUBMIT:", payload);
-    setRsvpOpen(false);
+  const SHEET_WEBAPP_URL = import.meta.env.VITE_RSVP_SHEET_URL;
+
+  const handleSubmit = async (payload) => {
+    try {
+      const fd = new FormData();
+      Object.entries(payload).forEach(([k, v]) => fd.append(k, v ?? ""));
+
+      const res = await fetch(SHEET_WEBAPP_URL, {
+        method: "POST",
+        body: fd, // ✅ form POST
+      });
+
+      const data = await res.json().catch(() => ({}));
+      console.log("RSVP saved:", data);
+
+      if (!res.ok || data.ok === false) {
+        throw new Error(data.error || "Failed to save RSVP");
+      }
+
+      // ✅ close RSVP modal
+      setRsvpOpen(false);
+
+      // ✅ show confirmation modal (tailored by yes/other/no)
+      setConfirmStatus(payload.status || "yes");
+      setConfirmOpen(true);
+    } catch (err) {
+      console.error("RSVP save error:", err);
+      alert("Sorry — your RSVP could not be saved. Please try again.");
+    }
   };
 
   return (
@@ -109,7 +139,7 @@ export default function InviteCard() {
                 <p>More information and curated travel details to follow.</p>
               </div>
 
-              {/* RSVP buttons ONLY (no "ARE YOU COMING?" heading here) */}
+              {/* RSVP buttons */}
               <div className="mt-8 sm:mt-10">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
@@ -148,12 +178,19 @@ export default function InviteCard() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* RSVP Modal */}
       <RSVPModal
         open={rsvpOpen}
         initialStatus={initialStatus}
         onClose={closeModal}
         onSubmit={handleSubmit}
+      />
+
+      {/* ✅ Royal confirmation modal */}
+      <RSVPConfirmModal
+        open={confirmOpen}
+        status={confirmStatus}
+        onClose={() => setConfirmOpen(false)}
       />
     </>
   );
