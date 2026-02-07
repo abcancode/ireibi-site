@@ -174,11 +174,11 @@ export default function InviteCard() {
                       </button>
                     </div>
 
-                    <div className="mt-7 sm:mt-8 flex items-center justify-center gap-2 text-[#A06A3B]">
+                    {/* <div className="mt-7 sm:mt-8 flex items-center justify-center gap-2 text-[#A06A3B]">
                       <span className="h-1 w-1 rounded-full bg-[#A06A3B]" />
                       <span className="h-1 w-1 rounded-full bg-[#A06A3B]/60" />
                       <span className="h-1 w-1 rounded-full bg-[#A06A3B]/30" />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>
