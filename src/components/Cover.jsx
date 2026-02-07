@@ -50,13 +50,11 @@ export default function Cover() {
   };
 
   const toggleSound = () => {
-    // If user taps toggle, that counts as interaction — safe to unmute.
     if (soundOn) disableSound();
     else enableSound();
   };
 
   const goDetails = () => {
-    // entering details also enables sound (luxury expectation)
     enableSound();
     setScene("details");
   };
@@ -73,13 +71,16 @@ export default function Cover() {
   return (
     <section
       className={[
-        "relative w-full h-[100svh]",
-        scene === "details" ? "overflow-y-auto" : "overflow-hidden",
+        // ✅ clamp horizontal overflow ALWAYS (fixes right overflow)
+        "relative w-full h-[100svh] overflow-x-hidden",
+        // ✅ only y-scroll changes per scene
+        scene === "details" ? "overflow-y-auto" : "overflow-y-hidden",
       ].join(" ")}
     >
       {/* ===== CINEMATIC BACKGROUND STACK ===== */}
       <motion.div
-        className="absolute inset-0"
+        // ✅ also clip inside the animated stack so transforms can't expand layout width
+        className="absolute inset-0 overflow-hidden"
         animate={bgMotion}
         transition={{
           duration: 18,
@@ -127,10 +128,12 @@ export default function Cover() {
 
         {/* slow royal light sweep */}
         <motion.div
-          className="absolute inset-0 opacity-[0.18]"
+          // ✅ keep effect, but ensure it can’t create horizontal scroll width
+          className="absolute inset-0 opacity-[0.18] pointer-events-none"
           style={{
             background:
               "linear-gradient(115deg, transparent 0%, rgba(255,220,160,0.35) 35%, transparent 70%)",
+            willChange: "transform",
           }}
           animate={{ x: ["-120%", "120%"] }}
           transition={{ duration: 10, ease: "easeInOut", repeat: Infinity }}
@@ -183,7 +186,7 @@ export default function Cover() {
                         delay: 0.05,
                       }}
                       style={{
-                        fontSize: "clamp(34px, 5.2vw, 66px)", // ✅ slightly bigger
+                        fontSize: "clamp(34px, 5.2vw, 66px)",
                         lineHeight: 1.02,
                         fontWeight: 700,
                       }}
@@ -216,7 +219,7 @@ export default function Cover() {
              whitespace-nowrap text-center
              drop-shadow-[0_12px_35px_rgba(0,0,0,0.6)]"
                     style={{
-                      fontSize: "clamp(12px, 3.5vw, 20px)", // 👈 KEY CHANGE
+                      fontSize: "clamp(12px, 3.5vw, 20px)",
                     }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -235,7 +238,6 @@ export default function Cover() {
                     Destination: Kenya
                   </motion.p>
 
-                  {/* ✅ ARE YOU COMING is now the CTA button (same design/size as old CTA) */}
                   <motion.button
                     onClick={goDetails}
                     className="mt-10 inline-flex items-center justify-center rounded-full px-6 py-3
@@ -251,7 +253,6 @@ export default function Cover() {
                     ARE YOU COMING?
                   </motion.button>
 
-                  {/* ✅ Helper line under CTA */}
                   <motion.div
                     className="
     mt-3
@@ -287,7 +288,6 @@ export default function Cover() {
                 >
                   <InviteCard />
 
-                  {/* Back always visible on mobile */}
                   <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center pointer-events-none">
                     <button
                       type="button"
