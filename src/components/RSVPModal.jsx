@@ -271,7 +271,6 @@ export default function RSVPModal({
                         <div>
                           <label className="mb-2 block text-[12px] sm:text-[13px] font-semibold text-neutral-700">
                             What’s your name?{" "}
-                            <span className="text-emerald-600">*</span>
                           </label>
                           <input
                             value={form.name}
@@ -290,12 +289,6 @@ export default function RSVPModal({
                         <div>
                           <label className="mb-2 flex items-center gap-2 text-[12px] sm:text-[13px] font-semibold text-neutral-700">
                             What’s your Email Address?
-                            <span
-                              className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-neutral-300 text-[10px] font-bold text-neutral-500"
-                              title="Optional"
-                            >
-                              i
-                            </span>
                           </label>
                           <input
                             value={form.email}
@@ -310,7 +303,6 @@ export default function RSVPModal({
                         <div className="md:col-span-1">
                           <label className="mb-2 block text-[12px] sm:text-[13px] font-semibold text-neutral-700">
                             What’s your Phone Number?{" "}
-                            <span className="text-emerald-600">*</span>
                           </label>
                           <input
                             value={form.phone}

@@ -9,8 +9,6 @@ export default function Cover() {
   const [scene, setScene] = useState("intro"); // "intro" | "details"
   const videoRef = useRef(null);
 
-  const [soundOn, setSoundOn] = useState(false);
-
   const ease = useMemo(() => [0.16, 1, 0.3, 1], []);
   const easeSoft = useMemo(() => [0.22, 1, 0.36, 1], []);
 
@@ -24,62 +22,33 @@ export default function Cover() {
     [],
   );
 
-  const enableSound = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    try {
-      v.muted = false;
-      v.volume = 1;
-      v.play?.().catch(() => {});
-      setSoundOn(true);
-    } catch {
-      // ignore
-    }
-  };
+  const goDetails = () => setScene("details");
+  const goIntro = () => setScene("intro");
 
-  const disableSound = () => {
+  // ✅ Force video to stay muted always (extra safety)
+  useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
+
     try {
       v.muted = true;
       v.volume = 0;
-      setSoundOn(false);
+      v.defaultMuted = true;
+      v.play?.().catch(() => {});
     } catch {
       // ignore
     }
-  };
-
-  const toggleSound = () => {
-    if (soundOn) disableSound();
-    else enableSound();
-  };
-
-  const goDetails = () => {
-    enableSound();
-    setScene("details");
-  };
-
-  const goIntro = () => setScene("intro");
-
-  // Optional: user first interaction enables sound
-  useEffect(() => {
-    const handler = () => enableSound();
-    window.addEventListener("pointerdown", handler, { once: true });
-    return () => window.removeEventListener("pointerdown", handler);
-  }, []);
+  }, [scene]);
 
   return (
     <section
       className={[
-        // ✅ clamp horizontal overflow ALWAYS (fixes right overflow)
         "relative w-full h-[100svh] overflow-x-hidden",
-        // ✅ only y-scroll changes per scene
         scene === "details" ? "overflow-y-auto" : "overflow-y-hidden",
       ].join(" ")}
     >
       {/* ===== CINEMATIC BACKGROUND STACK ===== */}
       <motion.div
-        // ✅ also clip inside the animated stack so transforms can't expand layout width
         className="absolute inset-0 overflow-hidden"
         animate={bgMotion}
         transition={{
@@ -128,7 +97,6 @@ export default function Cover() {
 
         {/* slow royal light sweep */}
         <motion.div
-          // ✅ keep effect, but ensure it can’t create horizontal scroll width
           className="absolute inset-0 opacity-[0.18] pointer-events-none"
           style={{
             background:
@@ -139,20 +107,6 @@ export default function Cover() {
           transition={{ duration: 10, ease: "easeInOut", repeat: Infinity }}
         />
       </motion.div>
-
-      {/* 🔉 SOUND TOGGLE (top-right) */}
-      <div className="absolute right-4 top-4 z-30">
-        <button
-          type="button"
-          onClick={toggleSound}
-          className="rounded-full bg-white/10 px-3 py-2 text-white ring-1 ring-white/20 backdrop-blur
-                     hover:bg-white/15 transition shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
-          aria-label={soundOn ? "Mute sound" : "Unmute sound"}
-          title={soundOn ? "Mute" : "Unmute"}
-        >
-          {soundOn ? "🔊" : "🔉"}
-        </button>
-      </div>
 
       {/* ===== CONTENT ===== */}
       <div className="relative z-10 h-[100svh] w-full px-3 sm:px-4">
@@ -174,7 +128,7 @@ export default function Cover() {
                   animate={{ y: 0, scale: 1, opacity: 1 }}
                   transition={{ duration: 0.9, ease: easeSoft }}
                 >
-                  {/* SAVE THE DATE - slightly bigger */}
+                  {/* SAVE THE DATE */}
                   <div className="relative inline-block">
                     <motion.h1
                       className="text-white text-center drop-shadow-[0_10px_35px_rgba(0,0,0,0.55)]"
@@ -215,12 +169,9 @@ export default function Cover() {
 
                   {/* subtitle */}
                   <motion.p
-                    className="mt-5 text-white font-bold tracking-[0.04em]
-             whitespace-nowrap text-center
-             drop-shadow-[0_12px_35px_rgba(0,0,0,0.6)]"
-                    style={{
-                      fontSize: "clamp(12px, 3.5vw, 20px)",
-                    }}
+                    className="mt-5 text-white font-bold tracking-[0.04em] whitespace-nowrap text-center
+                               drop-shadow-[0_12px_35px_rgba(0,0,0,0.6)]"
+                    style={{ fontSize: "clamp(12px, 3.5vw, 20px)" }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.9, ease: easeSoft, delay: 0.22 }}
@@ -254,14 +205,8 @@ export default function Cover() {
                   </motion.button>
 
                   <motion.div
-                    className="
-    mt-3
-    text-[10px] sm:text-[11px]
-    tracking-[0.18em]
-    text-white/45
-    font-medium
-    select-none
-  "
+                    className="mt-3 text-[10px] sm:text-[11px] tracking-[0.18em] text-white/45
+                               font-medium select-none"
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease, delay: 0.7 }}
