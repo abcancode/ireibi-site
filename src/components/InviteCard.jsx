@@ -54,9 +54,9 @@ export default function InviteCard() {
   return (
     <>
       {/* ✅ Keeps card inside viewport and prevents horizontal overflow on small screens */}
-      <div className="min-h-[100svh] w-full overflow-x-hidden flex items-center justify-center px-3 sm:px-6 py-6">
+      <div className="min-h-[100svh] w-full max-w-full overflow-x-hidden flex items-center justify-center px-3 sm:px-6 py-6">
         <div className="w-full max-w-[980px]">
-          <div className="relative w-full max-w-[100vw] overflow-hidden rounded-3xl bg-[#F3F0E8] ring-1 ring-black/10 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+          <div className="relative w-full max-w-full min-w-0 overflow-hidden rounded-3xl bg-[#F3F0E8] ring-1 ring-black/10 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
             <div
               className="pointer-events-none absolute inset-0 opacity-[0.07]"
               style={{
